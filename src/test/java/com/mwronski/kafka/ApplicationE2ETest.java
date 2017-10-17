@@ -1,5 +1,6 @@
 package com.mwronski.kafka;
 
+import com.mwronski.kafka.music.ChartsStream;
 import com.mwronski.kafka.music.model.SongPlayCountBean;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -66,8 +67,8 @@ public class ApplicationE2ETest {
 
     @BeforeClass
     public static void createTopics() {
-        CLUSTER.createTopic(Application.PLAY_EVENTS);
-        CLUSTER.createTopic(Application.SONG_FEED);
+        CLUSTER.createTopic(ChartsStream.PLAY_EVENTS);
+        CLUSTER.createTopic(ChartsStream.SONG_FEED);
         // these topics initialized just to avoid some rebalances.
         // they would normally be created by KafkaStreams.
         CLUSTER.createTopic("kafka-music-charts-song-play-count-changelog");
@@ -83,7 +84,7 @@ public class ApplicationE2ETest {
     public void createStreams() throws Exception {
         appServerPort = randomFreeLocalPort();
         streams =
-                Application.createChartsStreams(CLUSTER.bootstrapServers(),
+                ChartsStream.create(CLUSTER.bootstrapServers(),
                         CLUSTER.schemaRegistryUrl(),
                         appServerPort,
                         TestUtils.tempDirectory().getPath());
@@ -183,7 +184,7 @@ public class ApplicationE2ETest {
         );
 
         songs.forEach(song -> songProducer.send(
-                new ProducerRecord<Long, Song>(Application.SONG_FEED,
+                new ProducerRecord<Long, Song>(ChartsStream.SONG_FEED,
                         song.getId(),
                         song)));
 
@@ -212,7 +213,7 @@ public class ApplicationE2ETest {
 
         // wait until the StreamsMetadata is available as this indicates that
         // KafkaStreams initialization has occurred
-        TestUtils.waitForCondition(() -> !StreamsMetadata.NOT_AVAILABLE.equals(streams.allMetadataForStore(Application.TOP_FIVE_SONGS_STORE)),
+        TestUtils.waitForCondition(() -> !StreamsMetadata.NOT_AVAILABLE.equals(streams.allMetadataForStore(ChartsStream.TOP_FIVE_SONGS_STORE)),
                 MAX_WAIT_MS,
                 "StreamsMetadata should be available");
 
@@ -225,12 +226,12 @@ public class ApplicationE2ETest {
                     songsStore;
             try {
                 songsStore =
-                        streams.store(Application.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
+                        streams.store(ChartsStream.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
                 return songsStore.all().hasNext();
             } catch (Exception e) {
                 return false;
             }
-        }, MAX_WAIT_MS, Application.ALL_SONGS + " should be non-empty");
+        }, MAX_WAIT_MS, ChartsStream.ALL_SONGS + " should be non-empty");
 
         final IntFunction<SongPlayCountBean> intFunction = index -> {
             final Song song = songs.get(index);
@@ -299,7 +300,7 @@ public class ApplicationE2ETest {
                                 final KafkaProducer<String, PlayEvent> producer) {
         for (int i = 0; i < count; i++) {
             producer.send(new ProducerRecord<>(
-                    Application.PLAY_EVENTS,
+                    ChartsStream.PLAY_EVENTS,
                     "UK",
                     new PlayEvent(song.getId(), 60000L)));
         }

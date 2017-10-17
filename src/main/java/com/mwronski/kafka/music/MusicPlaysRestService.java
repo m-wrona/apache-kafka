@@ -56,7 +56,7 @@ public final class MusicPlaysRestService {
 
         // The genre might be hosted on another instance. We need to find which instance it is on
         // and then perform a remote lookup if necessary.
-        final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(Application.TOP_FIVE_SONGS_BY_GENRE_STORE, genre, new StringSerializer());
+        final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(ChartsStream.TOP_FIVE_SONGS_BY_GENRE_STORE, genre, new StringSerializer());
 
         // genre is on another instance. call the other instance to fetch the data.
         if (!thisHost(host)) {
@@ -64,7 +64,7 @@ public final class MusicPlaysRestService {
         }
 
         // genre is on this instance
-        return topFiveSongs(genre.toLowerCase(), Application.TOP_FIVE_SONGS_BY_GENRE_STORE);
+        return topFiveSongs(genre.toLowerCase(), ChartsStream.TOP_FIVE_SONGS_BY_GENRE_STORE);
 
     }
 
@@ -74,10 +74,7 @@ public final class MusicPlaysRestService {
     public List<SongPlayCountBean> topFive() {
         // The top-five might be hosted elsewhere. There is only one 1 partition with data
         // so we need to first find where it is and then we can do a local or remote lookup.
-        final HostStoreInfo
-                host =
-                metadataService.streamsMetadataForStoreAndKey(Application.TOP_FIVE_SONGS_STORE, Application
-                        .TOP_FIVE_KEY, new StringSerializer());
+        final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(ChartsStream.TOP_FIVE_SONGS_STORE, ChartsStream.TOP_FIVE_KEY, new StringSerializer());
 
         // top-five is hosted on another instance
         if (!thisHost(host)) {
@@ -85,7 +82,7 @@ public final class MusicPlaysRestService {
         }
 
         // top-five is hosted locally. so lookup in local store
-        return topFiveSongs(Application.TOP_FIVE_KEY, Application.TOP_FIVE_SONGS_STORE);
+        return topFiveSongs(ChartsStream.TOP_FIVE_KEY, ChartsStream.TOP_FIVE_SONGS_STORE);
     }
 
     private boolean thisHost(final HostStoreInfo host) {
@@ -113,7 +110,7 @@ public final class MusicPlaysRestService {
         }
         final List<SongPlayCountBean> results = new ArrayList<>();
         value.forEach(songPlayCount -> {
-            final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(Application.ALL_SONGS, songPlayCount.getSongId(), serializer);
+            final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(ChartsStream.ALL_SONGS, songPlayCount.getSongId(), serializer);
 
             // if the song is not hosted on this instance then we need to lookup it up
             // on the instance it is on.
@@ -129,7 +126,7 @@ public final class MusicPlaysRestService {
                         songPlayCount.getPlays()));
             } else {
                 // look in the local store
-                final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS,
+                final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(ChartsStream.ALL_SONGS,
                         QueryableStoreTypes.<Long, Song>keyValueStore());
                 final Song song = songStore.get(songPlayCount.getSongId());
                 results.add(new SongPlayCountBean(song.getArtist(), song.getAlbum(), song.getName(),
@@ -145,7 +142,7 @@ public final class MusicPlaysRestService {
     @Path("/song/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public SongBean song(@PathParam("id") Long songId) {
-        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
+        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(ChartsStream.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
         final Song song = songStore.get(songId);
         if (song == null) {
             throw new NotFoundException(String.format("Song with id [%d] was not found", songId));
