@@ -1,8 +1,8 @@
 package com.mwronski.kafka;
 
-import com.mwronski.kafka.streams.TopFiveSerde;
-import com.mwronski.kafka.streams.TopFiveSongs;
-import com.mwronski.kafka.web.MusicPlaysRestService;
+import com.mwronski.kafka.music.MusicPlaysRestService;
+import com.mwronski.kafka.music.TopFiveSerde;
+import com.mwronski.kafka.music.TopFiveSongs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -12,16 +12,14 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.state.HostInfo;
-import org.apache.kafka.streams.state.RocksDBConfigSetter;
-import org.rocksdb.Options;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-import io.confluent.examples.streams.avro.PlayEvent;
-import io.confluent.examples.streams.avro.Song;
-import io.confluent.examples.streams.avro.SongPlayCount;
+import com.mwronski.kafka.music.model.avro.PlayEvent;
+import com.mwronski.kafka.music.model.avro.Song;
+import com.mwronski.kafka.music.model.avro.SongPlayCount;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
@@ -39,19 +37,6 @@ public final class Application {
     private static final String DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost";
     private static final String DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092";
     private static final String DEFAULT_SCHEMA_REGISTRY_URL = "http://localhost:8081";
-
-    public static class CustomRocksDBConfig implements RocksDBConfigSetter {
-
-        @Override
-        public void setConfig(final String storeName, final Options options, final Map<String, Object> configs) {
-            // Workaround: We must ensure that the parallelism is set to >= 2.  There seems to be a known
-            // issue with RocksDB where explicitly setting the parallelism to 1 causes issues (even though
-            // 1 seems to be RocksDB's default for this configuration).
-            int compactionParallelism = Math.max(Runtime.getRuntime().availableProcessors(), 2);
-            // Set number of compaction threads (but not flush threads).
-            options.setIncreaseParallelism(compactionParallelism);
-        }
-    }
 
     public static void main(String[] args) throws Exception {
         if (args.length > 4) {
@@ -95,7 +80,7 @@ public final class Application {
         streams.start();
 
         // Start the Restful proxy for servicing remote access to state stores
-        final MusicPlaysRestService restService = startRestProxy(streams, restEndpoint);
+        final WebService restService = startRestProxy(streams, restEndpoint);
 
         // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -108,11 +93,12 @@ public final class Application {
         }));
     }
 
-    static MusicPlaysRestService startRestProxy(final KafkaStreams streams, final HostInfo hostInfo)
+    static WebService startRestProxy(final KafkaStreams streams, final HostInfo hostInfo)
             throws Exception {
-        final MusicPlaysRestService
-                interactiveQueriesRestService = new MusicPlaysRestService(streams, hostInfo);
-        interactiveQueriesRestService.start();
+        final WebService interactiveQueriesRestService = new WebService(streams, hostInfo);
+        interactiveQueriesRestService.start(
+                new MusicPlaysRestService(streams, hostInfo)
+        );
         return interactiveQueriesRestService;
     }
 

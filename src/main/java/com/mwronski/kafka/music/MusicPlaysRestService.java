@@ -1,21 +1,16 @@
-package com.mwronski.kafka.web;
+package com.mwronski.kafka.music;
 
 import com.mwronski.kafka.Application;
-import com.mwronski.kafka.model.SongBean;
-import com.mwronski.kafka.model.SongPlayCountBean;
-import com.mwronski.kafka.streams.TopFiveSongs;
+import com.mwronski.kafka.music.model.SongBean;
+import com.mwronski.kafka.music.model.SongPlayCountBean;
+import com.mwronski.kafka.music.TopFiveSongs;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +25,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import io.confluent.examples.streams.avro.Song;
+import com.mwronski.kafka.music.model.avro.Song;
 import com.mwronski.kafka.HostStoreInfo;
 import com.mwronski.kafka.MetadataService;
 
@@ -46,7 +41,6 @@ public final class MusicPlaysRestService {
     private final MetadataService metadataService;
     private final HostInfo hostInfo;
     private final Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
-    private Server jettyServer;
     private LongSerializer serializer = new LongSerializer();
 
     public MusicPlaysRestService(final KafkaStreams streams, final HostInfo hostInfo) {
@@ -151,81 +145,12 @@ public final class MusicPlaysRestService {
     @Path("/song/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public SongBean song(@PathParam("id") Long songId) {
-        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS,
-                QueryableStoreTypes.<Long, Song>keyValueStore());
+        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
         final Song song = songStore.get(songId);
         if (song == null) {
             throw new NotFoundException(String.format("Song with id [%d] was not found", songId));
         }
-
         return new SongBean(song.getArtist(), song.getAlbum(), song.getName());
-    }
-
-    /**
-     * Get the metadata for all of the instances of this Kafka Streams application
-     *
-     * @return List of {@link HostStoreInfo}
-     */
-    @GET()
-    @Path("/instances")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<HostStoreInfo> streamsMetadata() {
-        return metadataService.streamsMetadata();
-    }
-
-    /**
-     * Get the metadata for all instances of this Kafka Streams application that currently
-     * has the provided store.
-     *
-     * @param store The store to locate
-     * @return List of {@link HostStoreInfo}
-     */
-    @GET()
-    @Path("/instances/{storeName}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<HostStoreInfo> streamsMetadataForStore(@PathParam("storeName") String store) {
-        return metadataService.streamsMetadataForStore(store);
-    }
-
-    @GET()
-    @Path("/ping")
-    public String ping() {
-        return "pong";
-    }
-
-
-    /**
-     * Start an embedded Jetty Server
-     *
-     * @throws Exception
-     */
-    public void start() throws Exception {
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-
-        jettyServer = new Server(hostInfo.port());
-        jettyServer.setHandler(context);
-
-        ResourceConfig rc = new ResourceConfig();
-        rc.register(this);
-        rc.register(JacksonFeature.class);
-
-        ServletContainer sc = new ServletContainer(rc);
-        ServletHolder holder = new ServletHolder(sc);
-        context.addServlet(holder, "/*");
-
-        jettyServer.start();
-    }
-
-    /**
-     * Stop the Jetty Server
-     *
-     * @throws Exception
-     */
-    public void stop() throws Exception {
-        if (jettyServer != null) {
-            jettyServer.stop();
-        }
     }
 
 }

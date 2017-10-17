@@ -222,7 +222,7 @@
                             <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>src/main/resources/com.wronski.kafka.model</sourceDirectory>
+                            <sourceDirectory>src/main/resources/com.wronski.kafka.music.model</sourceDirectory>
                             <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                             <stringType>String</stringType>
                         </configuration>

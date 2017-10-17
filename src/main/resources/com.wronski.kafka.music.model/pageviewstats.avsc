@@ -1,10 +1,10 @@
-{"namespace": "io.confluent.examples.streams.avro",
+{"namespace": "com.mwronski.kafka.music.model.avro",
  "type": "record",
- "name": "PageView",
+ "name": "PageViewStats",
  "fields": [
      {"name": "user", "type": "string"},
      {"name": "page", "type": "string"},
      {"name": "industry", "type": "string"},
-     {"name": "flags", "type": ["null", "string"], "default": null}
+     {"name": "count", "type": "long"}
  ]
 }

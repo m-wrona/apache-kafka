@@ -1,7 +1,6 @@
 package com.mwronski.kafka;
 
-import com.mwronski.kafka.web.MusicPlaysRestService;
-import com.mwronski.kafka.model.SongPlayCountBean;
+import com.mwronski.kafka.music.model.SongPlayCountBean;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -36,8 +35,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import io.confluent.examples.streams.avro.PlayEvent;
-import io.confluent.examples.streams.avro.Song;
+import com.mwronski.kafka.music.model.avro.PlayEvent;
+import com.mwronski.kafka.music.model.avro.Song;
 import com.mwronski.kafka.embedded.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
@@ -47,7 +46,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * End-to-end integration test for {@link Application}. Demonstrates
- * how you can programmatically query the REST API exposed by {@link MusicPlaysRestService}
+ * how you can programmatically query the REST API exposed by {@link com.mwronski.kafka.music.MusicPlaysRestService}
  */
 public class ApplicationE2ETest {
 
@@ -55,7 +54,7 @@ public class ApplicationE2ETest {
     public static final EmbeddedSingleNodeKafkaCluster CLUSTER = new EmbeddedSingleNodeKafkaCluster();
     private static final int MAX_WAIT_MS = 30000;
     private KafkaStreams streams;
-    private MusicPlaysRestService restProxy;
+    private WebService restProxy;
     private int appServerPort;
 
     public static int randomFreeLocalPort() throws IOException {

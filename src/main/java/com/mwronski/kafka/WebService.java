@@ -11,16 +11,17 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
 import java.util.List;
 
 @Path("kafka-music")
-public final class KafkaRestService {
+final class WebService {
 
     private final MetadataService metadataService;
     private final HostInfo hostInfo;
     private Server jettyServer;
 
-    KafkaRestService(final KafkaStreams streams, final HostInfo hostInfo) {
+    WebService(final KafkaStreams streams, final HostInfo hostInfo) {
         this.metadataService = new MetadataService(streams);
         this.hostInfo = hostInfo;
     }
@@ -51,12 +52,7 @@ public final class KafkaRestService {
         return metadataService.streamsMetadataForStore(store);
     }
 
-    /**
-     * Start an embedded Jetty Server
-     *
-     * @throws Exception
-     */
-    void start() throws Exception {
+    void start(Object... restControllers) throws Exception {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
 
@@ -65,7 +61,7 @@ public final class KafkaRestService {
 
         ResourceConfig rc = new ResourceConfig();
         rc.register(this);
-        rc.register(JacksonFeature.class);
+        Arrays.stream(restControllers).forEach(c -> rc.register(c));
 
         ServletContainer sc = new ServletContainer(rc);
         ServletHolder holder = new ServletHolder(sc);
@@ -74,11 +70,6 @@ public final class KafkaRestService {
         jettyServer.start();
     }
 
-    /**
-     * Stop the Jetty Server
-     *
-     * @throws Exception
-     */
     void stop() throws Exception {
         if (jettyServer != null) {
             jettyServer.stop();

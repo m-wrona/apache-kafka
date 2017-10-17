@@ -1,6 +1,6 @@
-package com.mwronski.kafka.streams;
+package com.mwronski.kafka.music;
 
-import io.confluent.examples.streams.avro.SongPlayCount;
+import com.mwronski.kafka.music.model.avro.SongPlayCount;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;

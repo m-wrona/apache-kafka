@@ -1,24 +1,21 @@
-package com.mwronski.kafka.model;
+package com.mwronski.kafka.music.model;
 
 import java.util.Objects;
 
-public final class SongPlayCountBean {
+public final class SongBean {
 
     private String artist;
     private String album;
     private String name;
-    private Long plays;
 
-    public SongPlayCountBean() {
+    public SongBean() {
     }
 
-    public SongPlayCountBean(final String artist, final String album, final String name, final Long
-            plays) {
+    public SongBean(final String artist, final String album, final String name) {
 
         this.artist = artist;
         this.album = album;
         this.name = name;
-        this.plays = plays;
     }
 
     public String getArtist() {
@@ -45,21 +42,13 @@ public final class SongPlayCountBean {
         this.name = name;
     }
 
-    public Long getPlays() {
-        return plays;
-    }
-
-    public void setPlays(final Long plays) {
-        this.plays = plays;
-    }
 
     @Override
     public String toString() {
-        return "SongPlayCountBean{" +
+        return "SongBean{" +
                 "artist='" + artist + '\'' +
                 ", album='" + album + '\'' +
                 ", name='" + name + '\'' +
-                ", plays=" + plays +
                 '}';
     }
 
@@ -71,15 +60,14 @@ public final class SongPlayCountBean {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final SongPlayCountBean that = (SongPlayCountBean) o;
+        final SongBean that = (SongBean) o;
         return Objects.equals(artist, that.artist) &&
                 Objects.equals(album, that.album) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(plays, that.plays);
+                Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(artist, album, name, plays);
+        return Objects.hash(artist, album, name);
     }
 }

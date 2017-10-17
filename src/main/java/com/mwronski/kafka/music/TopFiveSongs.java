@@ -1,6 +1,6 @@
-package com.mwronski.kafka.streams;
+package com.mwronski.kafka.music;
 
-import io.confluent.examples.streams.avro.SongPlayCount;
+import com.mwronski.kafka.music.model.avro.SongPlayCount;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,7 +11,9 @@ import java.util.TreeSet;
  * Used in aggregations to keep track of the Top five songs
  */
 public class TopFiveSongs implements Iterable<SongPlayCount> {
+
     private final Map<Long, SongPlayCount> currentSongs = new HashMap<>();
+
     private final TreeSet<SongPlayCount> topFive = new TreeSet<>((o1, o2) -> {
         final int result = o2.getPlays().compareTo(o1.getPlays());
         if (result != 0) {
