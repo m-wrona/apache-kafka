@@ -60,7 +60,7 @@ public final class MusicPlaysRestService {
 
         // genre is on another instance. call the other instance to fetch the data.
         if (!thisHost(host)) {
-            return fetchSongPlayCount(host, "kafka-music/charts/genre/" + genre);
+            return fetchSongPlayCount(host, "music/charts/genre/" + genre);
         }
 
         // genre is on this instance
@@ -78,7 +78,7 @@ public final class MusicPlaysRestService {
 
         // top-five is hosted on another instance
         if (!thisHost(host)) {
-            return fetchSongPlayCount(host, "kafka-music/charts/top-five/");
+            return fetchSongPlayCount(host, "music/charts/top-five/");
         }
 
         // top-five is hosted locally. so lookup in local store
@@ -116,7 +116,7 @@ public final class MusicPlaysRestService {
             // on the instance it is on.
             if (!thisHost(host)) {
                 final SongBean song =
-                        client.target(String.format("http://%s:%d/kafka-music/song/%d",
+                        client.target(String.format("http://%s:%d/music/song/%d",
                                 host.getHost(),
                                 host.getPort(),
                                 songPlayCount.getSongId()))
