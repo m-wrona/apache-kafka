@@ -83,11 +83,12 @@ public class ApplicationE2ETest {
     @Before
     public void createStreams() throws Exception {
         appServerPort = randomFreeLocalPort();
-        streams =
-                ChartsStream.create(CLUSTER.bootstrapServers(),
-                        CLUSTER.schemaRegistryUrl(),
-                        appServerPort,
-                        TestUtils.tempDirectory().getPath());
+        streams = ChartsStream.create(
+                CLUSTER.bootstrapServers(),
+                CLUSTER.schemaRegistryUrl(),
+                appServerPort,
+                TestUtils.tempDirectory().getPath()
+        );
         restProxy = Application.startRestProxy(streams, new HostInfo("localhost", appServerPort));
     }
 

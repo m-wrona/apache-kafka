@@ -1,5 +1,6 @@
 package com.mwronski.kafka.music;
 
+import com.mwronski.kafka.config.KafkaConfigUtils;
 import com.mwronski.kafka.music.model.TopFiveSongs;
 import com.mwronski.kafka.music.model.avro.TopFiveSerde;
 import io.confluent.examples.streams.avro.PlayEvent;
@@ -25,8 +26,8 @@ public final class ChartsStream {
     private static final Long MIN_CHARTABLE_DURATION = 30 * 1000L;
     private static final String SONG_PLAY_COUNT_STORE = "song-play-count";
     public static final String PLAY_EVENTS = "play-events";
-    public static final String ALL_SONGS = "all-songs";
     public static final String SONG_FEED = "song-feed";
+    public static final String ALL_SONGS = "all-songs";
     public static final String TOP_FIVE_SONGS_BY_GENRE_STORE = "top-five-songs-by-genre";
     public static final String TOP_FIVE_SONGS_STORE = "top-five-songs";
     public static final String TOP_FIVE_KEY = "all";
@@ -59,37 +60,7 @@ public final class ChartsStream {
     }
 
     public static KafkaStreams create(final String bootstrapServers, final String schemaRegistryUrl, final int applicationServerPort, final String stateDir) {
-        final Properties streamsConfiguration = new Properties();
-        // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
-        // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-music-charts");
-        // Where to find Kafka broker(s).
-        streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        // Provide the details of our embedded http service that we'll use to connect to this streams
-        // instance and discover locations of stores.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_SERVER_CONFIG, "localhost:" + applicationServerPort);
-        streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, stateDir);
-        // Set to earliest so we don't miss any data that arrived in the topics before the process
-        // started
-        streamsConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        // Set the commit interval to 500ms so that any changes are flushed frequently and the top five
-        // charts are updated with low latency.
-        streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 500);
-        // Allow the user to fine-tune the `metadata.max.age.ms` via Java system properties from the CLI.
-        // Lowering this parameter from its default of 5 minutes to a few seconds is helpful in
-        // situations where the input topic was not pre-created before running the application because
-        // the application will discover a newly created topic faster.  In production, you would
-        // typically not change this parameter from its default.
-        String metadataMaxAgeMs = System.getProperty(ConsumerConfig.METADATA_MAX_AGE_CONFIG);
-        if (metadataMaxAgeMs != null) {
-            try {
-                int value = Integer.parseInt(metadataMaxAgeMs);
-                streamsConfiguration.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, value);
-                System.out.println("Set consumer configuration " + ConsumerConfig.METADATA_MAX_AGE_CONFIG +
-                        " to " + value);
-            } catch (NumberFormatException ignored) {
-            }
-        }
+        final Properties streamsConfiguration = KafkaConfigUtils.createStreamConfig(bootstrapServers, applicationServerPort, stateDir);
 
         // create and configure the SpecificAvroSerdes required in this example
         final Map<String, String> serdeConfig = Collections.singletonMap(
@@ -110,47 +81,45 @@ public final class ChartsStream {
         final KStreamBuilder builder = new KStreamBuilder();
 
         // get a stream of play events
-        final KStream<String, PlayEvent> playEvents = builder.stream(Serdes.String(),
-                playEventSerde,
-                PLAY_EVENTS);
+        final KStream<String, PlayEvent> playEvents = builder.stream(Serdes.String(), playEventSerde, PLAY_EVENTS);
 
         // get table and create a state store to hold all the songs in the store
-        final KTable<Long, Song>
-                songTable =
-                builder.table(Serdes.Long(), valueSongSerde, SONG_FEED, ALL_SONGS);
+        final KTable<Long, Song> songTable = builder.table(Serdes.Long(), valueSongSerde, SONG_FEED, ALL_SONGS);
 
         // Accept play events that have a duration >= the minimum
-        final KStream<Long, PlayEvent> playsBySongId =
-                playEvents.filter((region, event) -> event.getDuration() >= MIN_CHARTABLE_DURATION)
-                        // repartition based on song id
-                        .map((key, value) -> KeyValue.pair(value.getSongId(), value));
-
+        final KStream<Long, PlayEvent> playsBySongId = playEvents
+                .filter((region, event) -> event.getDuration() >= MIN_CHARTABLE_DURATION)
+                .map((key, playEvent) -> KeyValue.pair(playEvent.getSongId(), playEvent));
 
         // join the plays with song as we will use it later for charting
-        final KStream<Long, Song> songPlays = playsBySongId.leftJoin(songTable,
-                (value1, song) -> song,
+        final KStream<Long, Song> songPlays = playsBySongId.leftJoin(
+                songTable,
+                (playEvent, song) -> song,
                 Serdes.Long(),
-                playEventSerde);
+                playEventSerde
+        );
 
         // create a state store to track song play counts
-        final KTable<Song, Long> songPlayCounts = songPlays.groupBy((songId, song) -> song, keySongSerde, valueSongSerde)
+        final KTable<Song, Long> songPlayCounts = songPlays
+                .groupBy((songId, song) -> song, keySongSerde, valueSongSerde)
                 .count(SONG_PLAY_COUNT_STORE);
 
         final TopFiveSerde topFiveSerde = new TopFiveSerde();
 
-
         // Compute the top five charts for each genre. The results of this computation will continuously update the state
         // store "top-five-songs-by-genre", and this state store can then be queried interactively via a REST API (cf.
         // MusicPlaysRestService) for the latest charts per genre.
-        songPlayCounts.groupBy((song, plays) ->
-                        KeyValue.pair(song.getGenre().toLowerCase(),
-                                new SongPlayCount(song.getId(), plays)),
-                Serdes.String(),
-                songPlayCountSerde)
+        songPlayCounts
+                .groupBy(
+                        (song, plays) -> KeyValue.pair(song.getGenre().toLowerCase(), new SongPlayCount(song.getId(), plays)),
+                        Serdes.String(),
+                        songPlayCountSerde
+                )
                 // aggregate into a TopFiveSongs instance that will keep track
                 // of the current top five for each genre. The data will be available in the
                 // top-five-songs-genre store
-                .aggregate(TopFiveSongs::new,
+                .aggregate(
+                        TopFiveSongs::new,
                         (aggKey, value, aggregate) -> {
                             aggregate.add(value);
                             return aggregate;

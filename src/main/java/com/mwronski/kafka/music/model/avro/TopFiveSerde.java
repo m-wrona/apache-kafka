@@ -34,9 +34,7 @@ public final class TopFiveSerde implements Serde<TopFiveSongs> {
             @Override
             public byte[] serialize(final String s, final TopFiveSongs topFiveSongs) {
                 final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                final DataOutputStream
-                        dataOutputStream =
-                        new DataOutputStream(out);
+                final DataOutputStream dataOutputStream = new DataOutputStream(out);
                 try {
                     for (SongPlayCount songPlayCount : topFiveSongs) {
                         dataOutputStream.writeLong(songPlayCount.getSongId());
@@ -71,14 +69,11 @@ public final class TopFiveSerde implements Serde<TopFiveSongs> {
                 }
                 final TopFiveSongs result = new TopFiveSongs();
 
-                final DataInputStream
-                        dataInputStream =
-                        new DataInputStream(new ByteArrayInputStream(bytes));
+                final DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
 
                 try {
                     while (dataInputStream.available() > 0) {
-                        result.add(new SongPlayCount(dataInputStream.readLong(),
-                                dataInputStream.readLong()));
+                        result.add(new SongPlayCount(dataInputStream.readLong(), dataInputStream.readLong()));
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
