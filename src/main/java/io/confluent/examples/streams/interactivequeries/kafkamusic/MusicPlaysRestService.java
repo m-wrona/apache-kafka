@@ -27,8 +27,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
 import io.confluent.examples.streams.avro.Song;
-import io.confluent.examples.streams.interactivequeries.HostStoreInfo;
-import io.confluent.examples.streams.interactivequeries.MetadataService;
+import com.mwronski.kafka.HostStoreInfo;
+import com.mwronski.kafka.MetadataService;
 
 /**
  * A simple REST proxy that runs embedded in the {@link KafkaMusicExample}. This is used to

@@ -1,4 +1,4 @@
-package io.confluent.examples.streams.interactivequeries;
+package com.mwronski.kafka;
 
 import java.util.Objects;
 import java.util.Set;

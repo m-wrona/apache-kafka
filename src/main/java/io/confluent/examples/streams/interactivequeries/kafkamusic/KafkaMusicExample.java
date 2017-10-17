@@ -35,38 +35,38 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 /**
  * Demonstrates how to locate and query state stores (Interactive Queries).
- *
+ * <p>
  * This application continuously computes the latest Top 5 music charts based on song play events
  * collected in real-time in a Kafka topic. This charts data is maintained in a continuously updated
  * state store that can be queried interactively via a REST API.
- *
+ * <p>
  * Note: This example uses Java 8 functionality and thus works with Java 8+ only.  But of course you
  * can use the Interactive Queries feature of Kafka Streams also with Java 7.
- *
+ * <p>
  * The topology in this example is modelled on a (very) simple streaming music service. It has 2
  * input topics: song-feed and play-events.
- *
+ * <p>
  * The song-feed topic contains all of the songs available in the streaming service and is read
  * as a KTable with all songs being stored in the all-songs state store.
- *
+ * <p>
  * The play-events topic is a feed of song plays. We filter the play events to only accept events
  * where the duration is >= 30 seconds. We then map the stream so that it is keyed by songId.
- *
+ * <p>
  * Now that both streams are keyed the same we can join the play events with the songs, group by
  * the song and count them into a KTable, songPlayCounts, and a state store, song-play-count,
  * to keep track of the number of times each song has been played.
- *
+ * <p>
  * Next, we group the songPlayCounts KTable by genre and aggregate into another KTable with the
  * state store, top-five-songs-by-genre, to track the top five songs by genre. Subsequently, we
  * group the same songPlayCounts KTable such that all song plays end up in the same partition. We
  * use this to aggregate the overall top five songs played into the state store, top-five.
- *
+ * <p>
  * HOW TO RUN THIS EXAMPLE
- *
+ * <p>
  * 1) Start Zookeeper, Kafka, and Confluent Schema Registry. Please refer to <a href='http://docs.confluent.io/current/quickstart.html#quickstart'>QuickStart</a>.
- *
+ * <p>
  * 2) Create the input and output topics used by this example.
- *
+ * <p>
  * <pre>
  * {@code
  * $ bin/kafka-topics --create --topic play-events \
@@ -76,48 +76,48 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
  *
  * }
  * </pre>
- *
+ * <p>
  * Note: The above commands are for the Confluent Platform. For Apache Kafka it should be
  * `bin/kafka-topics.sh ...`.
- *
- *
+ * <p>
+ * <p>
  * 3) Start two instances of this example application either in your IDE or on the command
  * line.
- *
+ * <p>
  * If via the command line please refer to <a href='https://github.com/confluentinc/examples/tree/master/kafka-streams#packaging-and-running'>Packaging</a>.
- *
+ * <p>
  * Once packaged you can then start the first instance of the application (on port 7070):
- *
+ * <p>
  * <pre>
  * {@code
  * $ java -cp target/streams-examples-3.3.0-standalone.jar \
  *      io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample 7070
  * }
  * </pre>
- *
+ * <p>
  * Here, `7070` sets the port for the REST endpoint that will be used by this application instance.
- *
+ * <p>
  * Then, in a separate terminal, run the second instance of this application (on port 7071):
- *
+ * <p>
  * <pre>
  * {@code
  * $ java -cp target/streams-examples-3.3.0-standalone.jar \
  *      io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample 7071
  * }
  * </pre>
- *
- *
+ * <p>
+ * <p>
  * 4) Write some input data to the source topics (e.g. via {@link KafkaMusicExampleDriver}). The
  * already running example application (step 3) will automatically process this input data
- *
- *
+ * <p>
+ * <p>
  * 5) Use your browser to hit the REST endpoint of the app instance you started in step 3 to query
  * the state managed by this application.  Note: If you are running multiple app instances, you can
  * query them arbitrarily -- if an app instance cannot satisfy a query itself, it will fetch the
  * results from the other instances.
- *
+ * <p>
  * For example:
- *
+ * <p>
  * <pre>
  * {@code
  * # List all running instances of this application
@@ -133,16 +133,16 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
  * http://localhost:7070/kafka-music/charts/top-five
  * }
  * </pre>
- *
+ * <p>
  * Note: that the REST functionality is NOT part of Kafka Streams or its API. For demonstration
  * purposes of this example application, we decided to go with a simple, custom-built REST API that
  * uses the Interactive Queries API of Kafka Streams behind the scenes to expose the state stores of
  * this application via REST.
- *
+ * <p>
  * 6) Once you're done with your experiments, you can stop this example via `Ctrl-C`.  If needed,
  * also stop the Schema Registry (`Ctrl-C`), the Kafka broker (`Ctrl-C`), and only then stop the ZooKeeper instance
  * (`Ctrl-C`).
- *
+ * <p>
  * If you like you can run multiple instances of this example by passing in a different port. You
  * can then experiment with seeing how keys map to different instances etc.
  */
@@ -176,13 +176,13 @@ public class KafkaMusicExample {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0 || args.length > 4) {
+        if (args.length > 4) {
             throw new IllegalArgumentException("usage: ... <portForRestEndpoint> " +
                     "[<bootstrap.servers> (optional, default: " + DEFAULT_BOOTSTRAP_SERVERS + ")] " +
                     "[<schema.registry.url> (optional, default: " + DEFAULT_SCHEMA_REGISTRY_URL + ")] " +
                     "[<hostnameForRestEndPoint> (optional, default: " + DEFAULT_REST_ENDPOINT_HOSTNAME + ")]");
         }
-        final int restEndpointPort = Integer.valueOf(args[0]);
+        final int restEndpointPort = args.length == 1 ? Integer.valueOf(args[0]) : 8080;
         final String bootstrapServers = args.length > 1 ? args[1] : "localhost:9092";
         final String schemaRegistryUrl = args.length > 2 ? args[2] : "http://localhost:8081";
         final String restEndpointHostname = args.length > 3 ? args[3] : DEFAULT_REST_ENDPOINT_HOSTNAME;

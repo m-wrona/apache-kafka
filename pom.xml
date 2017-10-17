@@ -4,16 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.confluent</groupId>
-    <artifactId>streams-examples</artifactId>
+    <groupId>com.mwronski</groupId>
+    <artifactId>kafka</artifactId>
     <packaging>jar</packaging>
-    <version>3.3.0</version>
+    <version>1.0.0</version>
 
-    <organization>
-        <name>Confluent, Inc.</name>
-        <url>http://confluent.io</url>
-    </organization>
-    <url>http://confluent.io</url>
     <description>
         Kafka Streams examples
     </description>
@@ -183,6 +178,22 @@
     <build>
 
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample</mainClass>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
