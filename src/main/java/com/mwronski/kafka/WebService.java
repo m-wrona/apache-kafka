@@ -1,7 +1,5 @@
 package com.mwronski.kafka;
 
-import com.mwronski.kafka.config.MetadataService;
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;

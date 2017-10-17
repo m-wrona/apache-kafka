@@ -98,7 +98,7 @@ public final class Application {
             throws Exception {
         final WebService webService = new WebService(hostInfo);
         webService.start(
-                new KafkaConfigRestService(streams),
+//                new KafkaConfigRestService(streams),
                 new MusicPlaysRestService(streams, hostInfo)
         );
         return webService;
