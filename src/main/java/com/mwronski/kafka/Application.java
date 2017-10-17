@@ -1,5 +1,6 @@
-package io.confluent.examples.streams.interactivequeries.kafkamusic;
+package com.mwronski.kafka;
 
+import com.mwronski.kafka.web.MusicPlaysRestService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -33,130 +34,16 @@ import io.confluent.examples.streams.avro.SongPlayCount;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
-/**
- * Demonstrates how to locate and query state stores (Interactive Queries).
- * <p>
- * This application continuously computes the latest Top 5 music charts based on song play events
- * collected in real-time in a Kafka topic. This charts data is maintained in a continuously updated
- * state store that can be queried interactively via a REST API.
- * <p>
- * Note: This example uses Java 8 functionality and thus works with Java 8+ only.  But of course you
- * can use the Interactive Queries feature of Kafka Streams also with Java 7.
- * <p>
- * The topology in this example is modelled on a (very) simple streaming music service. It has 2
- * input topics: song-feed and play-events.
- * <p>
- * The song-feed topic contains all of the songs available in the streaming service and is read
- * as a KTable with all songs being stored in the all-songs state store.
- * <p>
- * The play-events topic is a feed of song plays. We filter the play events to only accept events
- * where the duration is >= 30 seconds. We then map the stream so that it is keyed by songId.
- * <p>
- * Now that both streams are keyed the same we can join the play events with the songs, group by
- * the song and count them into a KTable, songPlayCounts, and a state store, song-play-count,
- * to keep track of the number of times each song has been played.
- * <p>
- * Next, we group the songPlayCounts KTable by genre and aggregate into another KTable with the
- * state store, top-five-songs-by-genre, to track the top five songs by genre. Subsequently, we
- * group the same songPlayCounts KTable such that all song plays end up in the same partition. We
- * use this to aggregate the overall top five songs played into the state store, top-five.
- * <p>
- * HOW TO RUN THIS EXAMPLE
- * <p>
- * 1) Start Zookeeper, Kafka, and Confluent Schema Registry. Please refer to <a href='http://docs.confluent.io/current/quickstart.html#quickstart'>QuickStart</a>.
- * <p>
- * 2) Create the input and output topics used by this example.
- * <p>
- * <pre>
- * {@code
- * $ bin/kafka-topics --create --topic play-events \
- *                    --zookeeper localhost:2181 --partitions 4 --replication-factor 1
- * $ bin/kafka-topics --create --topic song-feed \
- *                    --zookeeper localhost:2181 --partitions 4 --replication-factor 1
- *
- * }
- * </pre>
- * <p>
- * Note: The above commands are for the Confluent Platform. For Apache Kafka it should be
- * `bin/kafka-topics.sh ...`.
- * <p>
- * <p>
- * 3) Start two instances of this example application either in your IDE or on the command
- * line.
- * <p>
- * If via the command line please refer to <a href='https://github.com/confluentinc/examples/tree/master/kafka-streams#packaging-and-running'>Packaging</a>.
- * <p>
- * Once packaged you can then start the first instance of the application (on port 7070):
- * <p>
- * <pre>
- * {@code
- * $ java -cp target/streams-examples-3.3.0-standalone.jar \
- *      io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample 7070
- * }
- * </pre>
- * <p>
- * Here, `7070` sets the port for the REST endpoint that will be used by this application instance.
- * <p>
- * Then, in a separate terminal, run the second instance of this application (on port 7071):
- * <p>
- * <pre>
- * {@code
- * $ java -cp target/streams-examples-3.3.0-standalone.jar \
- *      io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample 7071
- * }
- * </pre>
- * <p>
- * <p>
- * 4) Write some input data to the source topics (e.g. via {@link KafkaMusicExampleDriver}). The
- * already running example application (step 3) will automatically process this input data
- * <p>
- * <p>
- * 5) Use your browser to hit the REST endpoint of the app instance you started in step 3 to query
- * the state managed by this application.  Note: If you are running multiple app instances, you can
- * query them arbitrarily -- if an app instance cannot satisfy a query itself, it will fetch the
- * results from the other instances.
- * <p>
- * For example:
- * <p>
- * <pre>
- * {@code
- * # List all running instances of this application
- * http://localhost:7070/kafka-music/instances
- *
- * # List app instances that currently manage (parts of) state store "song-play-count"
- * http://localhost:7070/kafka-music/instances/song-play-count
- *
- * # Get the latest top five for the genre "punk"
- * http://localhost:7070/kafka-music/charts/genre/punk
- *
- * # Get the latest top five across all genres
- * http://localhost:7070/kafka-music/charts/top-five
- * }
- * </pre>
- * <p>
- * Note: that the REST functionality is NOT part of Kafka Streams or its API. For demonstration
- * purposes of this example application, we decided to go with a simple, custom-built REST API that
- * uses the Interactive Queries API of Kafka Streams behind the scenes to expose the state stores of
- * this application via REST.
- * <p>
- * 6) Once you're done with your experiments, you can stop this example via `Ctrl-C`.  If needed,
- * also stop the Schema Registry (`Ctrl-C`), the Kafka broker (`Ctrl-C`), and only then stop the ZooKeeper instance
- * (`Ctrl-C`).
- * <p>
- * If you like you can run multiple instances of this example by passing in a different port. You
- * can then experiment with seeing how keys map to different instances etc.
- */
-
-public class KafkaMusicExample {
+public class Application {
 
     private static final Long MIN_CHARTABLE_DURATION = 30 * 1000L;
     private static final String SONG_PLAY_COUNT_STORE = "song-play-count";
-    static final String PLAY_EVENTS = "play-events";
-    static final String ALL_SONGS = "all-songs";
-    static final String SONG_FEED = "song-feed";
-    static final String TOP_FIVE_SONGS_BY_GENRE_STORE = "top-five-songs-by-genre";
-    static final String TOP_FIVE_SONGS_STORE = "top-five-songs";
-    static final String TOP_FIVE_KEY = "all";
+    public static final String PLAY_EVENTS = "play-events";
+    public static final String ALL_SONGS = "all-songs";
+    public static final String SONG_FEED = "song-feed";
+    public static final String TOP_FIVE_SONGS_BY_GENRE_STORE = "top-five-songs-by-genre";
+    public static final String TOP_FIVE_SONGS_STORE = "top-five-songs";
+    public static final String TOP_FIVE_KEY = "all";
 
     private static final String DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost";
     private static final String DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092";
@@ -188,9 +75,11 @@ public class KafkaMusicExample {
         final String restEndpointHostname = args.length > 3 ? args[3] : DEFAULT_REST_ENDPOINT_HOSTNAME;
         final HostInfo restEndpoint = new HostInfo(restEndpointHostname, restEndpointPort);
 
+        System.out.println("***************************************************************************");
         System.out.println("Connecting to Kafka cluster via bootstrap servers " + bootstrapServers);
         System.out.println("Connecting to Confluent schema registry at " + schemaRegistryUrl);
         System.out.println("REST endpoint at http://" + restEndpointHostname + ":" + restEndpointPort);
+        System.out.println("***************************************************************************");
 
         final KafkaStreams streams = createChartsStreams(bootstrapServers,
                 schemaRegistryUrl,
@@ -457,7 +346,7 @@ public class KafkaMusicExample {
     /**
      * Used in aggregations to keep track of the Top five songs
      */
-    static class TopFiveSongs implements Iterable<SongPlayCount> {
+    public static class TopFiveSongs implements Iterable<SongPlayCount> {
         private final Map<Long, SongPlayCount> currentSongs = new HashMap<>();
         private final TreeSet<SongPlayCount> topFive = new TreeSet<>((o1, o2) -> {
             final int result = o2.getPlays().compareTo(o1.getPlays());

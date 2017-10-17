@@ -1,4 +1,4 @@
-package io.confluent.examples.streams.kafka;
+package com.mwronski.kafka.embedded;
 
 import org.apache.curator.test.InstanceSpec;
 import org.junit.rules.ExternalResource;
@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 import io.confluent.kafka.schemaregistry.RestApp;
-import io.confluent.examples.streams.zookeeper.ZooKeeperEmbedded;
 import io.confluent.kafka.schemaregistry.avro.AvroCompatibilityLevel;
 import kafka.server.KafkaConfig$;
 

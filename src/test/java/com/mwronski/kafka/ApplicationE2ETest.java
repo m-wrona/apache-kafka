@@ -1,5 +1,7 @@
-package io.confluent.examples.streams.interactivequeries.kafkamusic;
+package com.mwronski.kafka;
 
+import com.mwronski.kafka.web.MusicPlaysRestService;
+import com.mwronski.kafka.model.SongPlayCountBean;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -36,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 
 import io.confluent.examples.streams.avro.PlayEvent;
 import io.confluent.examples.streams.avro.Song;
-import io.confluent.examples.streams.kafka.EmbeddedSingleNodeKafkaCluster;
+import com.mwronski.kafka.embedded.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
 
@@ -44,10 +46,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * End-to-end integration test for {@link KafkaMusicExample}. Demonstrates
+ * End-to-end integration test for {@link Application}. Demonstrates
  * how you can programmatically query the REST API exposed by {@link MusicPlaysRestService}
  */
-public class KafkaMusicExampleTest {
+public class ApplicationE2ETest {
 
     @ClassRule
     public static final EmbeddedSingleNodeKafkaCluster CLUSTER = new EmbeddedSingleNodeKafkaCluster();
@@ -65,8 +67,8 @@ public class KafkaMusicExampleTest {
 
     @BeforeClass
     public static void createTopics() {
-        CLUSTER.createTopic(KafkaMusicExample.PLAY_EVENTS);
-        CLUSTER.createTopic(KafkaMusicExample.SONG_FEED);
+        CLUSTER.createTopic(Application.PLAY_EVENTS);
+        CLUSTER.createTopic(Application.SONG_FEED);
         // these topics initialized just to avoid some rebalances.
         // they would normally be created by KafkaStreams.
         CLUSTER.createTopic("kafka-music-charts-song-play-count-changelog");
@@ -82,11 +84,11 @@ public class KafkaMusicExampleTest {
     public void createStreams() throws Exception {
         appServerPort = randomFreeLocalPort();
         streams =
-                KafkaMusicExample.createChartsStreams(CLUSTER.bootstrapServers(),
+                Application.createChartsStreams(CLUSTER.bootstrapServers(),
                         CLUSTER.schemaRegistryUrl(),
                         appServerPort,
                         TestUtils.tempDirectory().getPath());
-        restProxy = KafkaMusicExample.startRestProxy(streams, new HostInfo("localhost", appServerPort));
+        restProxy = Application.startRestProxy(streams, new HostInfo("localhost", appServerPort));
     }
 
     @After
@@ -182,7 +184,7 @@ public class KafkaMusicExampleTest {
         );
 
         songs.forEach(song -> songProducer.send(
-                new ProducerRecord<Long, Song>(KafkaMusicExample.SONG_FEED,
+                new ProducerRecord<Long, Song>(Application.SONG_FEED,
                         song.getId(),
                         song)));
 
@@ -211,7 +213,7 @@ public class KafkaMusicExampleTest {
 
         // wait until the StreamsMetadata is available as this indicates that
         // KafkaStreams initialization has occurred
-        TestUtils.waitForCondition(() -> !StreamsMetadata.NOT_AVAILABLE.equals(streams.allMetadataForStore(KafkaMusicExample.TOP_FIVE_SONGS_STORE)),
+        TestUtils.waitForCondition(() -> !StreamsMetadata.NOT_AVAILABLE.equals(streams.allMetadataForStore(Application.TOP_FIVE_SONGS_STORE)),
                 MAX_WAIT_MS,
                 "StreamsMetadata should be available");
 
@@ -224,12 +226,12 @@ public class KafkaMusicExampleTest {
                     songsStore;
             try {
                 songsStore =
-                        streams.store(KafkaMusicExample.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
+                        streams.store(Application.ALL_SONGS, QueryableStoreTypes.<Long, Song>keyValueStore());
                 return songsStore.all().hasNext();
             } catch (Exception e) {
                 return false;
             }
-        }, MAX_WAIT_MS, KafkaMusicExample.ALL_SONGS + " should be non-empty");
+        }, MAX_WAIT_MS, Application.ALL_SONGS + " should be non-empty");
 
         final IntFunction<SongPlayCountBean> intFunction = index -> {
             final Song song = songs.get(index);
@@ -298,7 +300,7 @@ public class KafkaMusicExampleTest {
                                 final KafkaProducer<String, PlayEvent> producer) {
         for (int i = 0; i < count; i++) {
             producer.send(new ProducerRecord<>(
-                    KafkaMusicExample.PLAY_EVENTS,
+                    Application.PLAY_EVENTS,
                     "UK",
                     new PlayEvent(song.getId(), 60000L)));
         }

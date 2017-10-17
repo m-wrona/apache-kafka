@@ -1,4 +1,4 @@
-package io.confluent.examples.streams.kafka;
+package com.mwronski.kafka.embedded;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;

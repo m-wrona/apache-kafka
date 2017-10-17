@@ -1,5 +1,8 @@
-package io.confluent.examples.streams.interactivequeries.kafkamusic;
+package com.mwronski.kafka.web;
 
+import com.mwronski.kafka.Application;
+import com.mwronski.kafka.model.SongBean;
+import com.mwronski.kafka.model.SongPlayCountBean;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -31,7 +34,7 @@ import com.mwronski.kafka.HostStoreInfo;
 import com.mwronski.kafka.MetadataService;
 
 /**
- * A simple REST proxy that runs embedded in the {@link KafkaMusicExample}. This is used to
+ * A simple REST proxy that runs embedded in the {@link Application}. This is used to
  * demonstrate how a developer can use the Interactive Queries APIs exposed by Kafka Streams to
  * locate and query the State Stores within a Kafka Streams Application.
  */
@@ -45,7 +48,7 @@ public class MusicPlaysRestService {
     private Server jettyServer;
     private LongSerializer serializer = new LongSerializer();
 
-    MusicPlaysRestService(final KafkaStreams streams, final HostInfo hostInfo) {
+    public MusicPlaysRestService(final KafkaStreams streams, final HostInfo hostInfo) {
         this.streams = streams;
         this.metadataService = new MetadataService(streams);
         this.hostInfo = hostInfo;
@@ -58,7 +61,7 @@ public class MusicPlaysRestService {
 
         // The genre might be hosted on another instance. We need to find which instance it is on
         // and then perform a remote lookup if necessary.
-        final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(KafkaMusicExample.TOP_FIVE_SONGS_BY_GENRE_STORE, genre, new StringSerializer());
+        final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(Application.TOP_FIVE_SONGS_BY_GENRE_STORE, genre, new StringSerializer());
 
         // genre is on another instance. call the other instance to fetch the data.
         if (!thisHost(host)) {
@@ -66,7 +69,7 @@ public class MusicPlaysRestService {
         }
 
         // genre is on this instance
-        return topFiveSongs(genre.toLowerCase(), KafkaMusicExample.TOP_FIVE_SONGS_BY_GENRE_STORE);
+        return topFiveSongs(genre.toLowerCase(), Application.TOP_FIVE_SONGS_BY_GENRE_STORE);
 
     }
 
@@ -78,7 +81,7 @@ public class MusicPlaysRestService {
         // so we need to first find where it is and then we can do a local or remote lookup.
         final HostStoreInfo
                 host =
-                metadataService.streamsMetadataForStoreAndKey(KafkaMusicExample.TOP_FIVE_SONGS_STORE, KafkaMusicExample
+                metadataService.streamsMetadataForStoreAndKey(Application.TOP_FIVE_SONGS_STORE, Application
                         .TOP_FIVE_KEY, new StringSerializer());
 
         // top-five is hosted on another instance
@@ -87,7 +90,7 @@ public class MusicPlaysRestService {
         }
 
         // top-five is hosted locally. so lookup in local store
-        return topFiveSongs(KafkaMusicExample.TOP_FIVE_KEY, KafkaMusicExample.TOP_FIVE_SONGS_STORE);
+        return topFiveSongs(Application.TOP_FIVE_KEY, Application.TOP_FIVE_SONGS_STORE);
     }
 
     private boolean thisHost(final HostStoreInfo host) {
@@ -106,16 +109,16 @@ public class MusicPlaysRestService {
     private List<SongPlayCountBean> topFiveSongs(final String key,
                                                  final String storeName) {
 
-        final ReadOnlyKeyValueStore<String, KafkaMusicExample.TopFiveSongs> topFiveStore =
-                streams.store(storeName, QueryableStoreTypes.<String, KafkaMusicExample.TopFiveSongs>keyValueStore());
+        final ReadOnlyKeyValueStore<String, Application.TopFiveSongs> topFiveStore =
+                streams.store(storeName, QueryableStoreTypes.<String, Application.TopFiveSongs>keyValueStore());
         // Get the value from the store
-        final KafkaMusicExample.TopFiveSongs value = topFiveStore.get(key);
+        final Application.TopFiveSongs value = topFiveStore.get(key);
         if (value == null) {
             throw new NotFoundException(String.format("Unable to find value in %s for key %s", storeName, key));
         }
         final List<SongPlayCountBean> results = new ArrayList<>();
         value.forEach(songPlayCount -> {
-            final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(KafkaMusicExample.ALL_SONGS, songPlayCount.getSongId(), serializer);
+            final HostStoreInfo host = metadataService.streamsMetadataForStoreAndKey(Application.ALL_SONGS, songPlayCount.getSongId(), serializer);
 
             // if the song is not hosted on this instance then we need to lookup it up
             // on the instance it is on.
@@ -131,7 +134,7 @@ public class MusicPlaysRestService {
                         songPlayCount.getPlays()));
             } else {
                 // look in the local store
-                final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(KafkaMusicExample.ALL_SONGS,
+                final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS,
                         QueryableStoreTypes.<Long, Song>keyValueStore());
                 final Song song = songStore.get(songPlayCount.getSongId());
                 results.add(new SongPlayCountBean(song.getArtist(), song.getAlbum(), song.getName(),
@@ -147,7 +150,7 @@ public class MusicPlaysRestService {
     @Path("/song/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public SongBean song(@PathParam("id") Long songId) {
-        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(KafkaMusicExample.ALL_SONGS,
+        final ReadOnlyKeyValueStore<Long, Song> songStore = streams.store(Application.ALL_SONGS,
                 QueryableStoreTypes.<Long, Song>keyValueStore());
         final Song song = songStore.get(songId);
         if (song == null) {
@@ -183,12 +186,19 @@ public class MusicPlaysRestService {
         return metadataService.streamsMetadataForStore(store);
     }
 
+    @GET()
+    @Path("/ping")
+    public String ping() {
+        return "pong";
+    }
+
+
     /**
      * Start an embedded Jetty Server
      *
      * @throws Exception
      */
-    void start() throws Exception {
+    public void start() throws Exception {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
 
@@ -211,7 +221,7 @@ public class MusicPlaysRestService {
      *
      * @throws Exception
      */
-    void stop() throws Exception {
+    public void stop() throws Exception {
         if (jettyServer != null) {
             jettyServer.stop();
         }

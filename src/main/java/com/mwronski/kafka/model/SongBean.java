@@ -1,4 +1,4 @@
-package io.confluent.examples.streams.interactivequeries.kafkamusic;
+package com.mwronski.kafka.model;
 
 import java.util.Objects;
 

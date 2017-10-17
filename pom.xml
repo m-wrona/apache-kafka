@@ -191,7 +191,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExample</mainClass>
+                    <mainClass>com.mwronski.kafka.Application</mainClass>
                 </configuration>
             </plugin>
 
@@ -217,7 +217,7 @@
                             <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>src/main/resources/avro/io/confluent/examples/streams</sourceDirectory>
+                            <sourceDirectory>src/main/resources/com.wronski.kafka.model</sourceDirectory>
                             <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                             <stringType>String</stringType>
                         </configuration>
