@@ -135,12 +135,13 @@ public final class ChartsStream {
         // Compute the top five chart. The results of this computation will continuously update the state
         // store "top-five-songs", and this state store can then be queried interactively via a REST API (cf.
         // MusicPlaysRestService) for the latest charts per genre.
-        songPlayCounts.groupBy((song, plays) ->
-                        KeyValue.pair(TOP_FIVE_KEY,
-                                new SongPlayCount(song.getId(), plays)),
+        songPlayCounts.groupBy(
+                (song, plays) -> KeyValue.pair(TOP_FIVE_KEY, new SongPlayCount(song.getId(), plays)),
                 Serdes.String(),
-                songPlayCountSerde)
-                .aggregate(TopFiveSongs::new,
+                songPlayCountSerde
+        )
+                .aggregate(
+                        TopFiveSongs::new,
                         (aggKey, value, aggregate) -> {
                             aggregate.add(value);
                             return aggregate;
