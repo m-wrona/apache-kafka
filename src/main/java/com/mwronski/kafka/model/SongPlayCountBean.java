@@ -2,7 +2,7 @@ package com.mwronski.kafka.model;
 
 import java.util.Objects;
 
-public class SongPlayCountBean {
+public final class SongPlayCountBean {
 
     private String artist;
     private String album;

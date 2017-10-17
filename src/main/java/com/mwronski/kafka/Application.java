@@ -1,11 +1,10 @@
 package com.mwronski.kafka;
 
+import com.mwronski.kafka.streams.TopFiveSerde;
+import com.mwronski.kafka.streams.TopFiveSongs;
 import com.mwronski.kafka.web.MusicPlaysRestService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
@@ -16,17 +15,9 @@ import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.RocksDBConfigSetter;
 import org.rocksdb.Options;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeSet;
 
 import io.confluent.examples.streams.avro.PlayEvent;
 import io.confluent.examples.streams.avro.Song;
@@ -34,7 +25,7 @@ import io.confluent.examples.streams.avro.SongPlayCount;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
-public class Application {
+public final class Application {
 
     private static final Long MIN_CHARTABLE_DURATION = 30 * 1000L;
     private static final String SONG_PLAY_COUNT_STORE = "song-play-count";
@@ -256,129 +247,6 @@ public class Application {
 
         return new KafkaStreams(builder, streamsConfiguration);
 
-    }
-
-    /**
-     * Serde for TopFiveSongs
-     */
-    private static class TopFiveSerde implements Serde<TopFiveSongs> {
-
-        @Override
-        public void configure(final Map<String, ?> map, final boolean b) {
-
-        }
-
-        @Override
-        public void close() {
-
-        }
-
-        @Override
-        public Serializer<TopFiveSongs> serializer() {
-            return new Serializer<TopFiveSongs>() {
-                @Override
-                public void configure(final Map<String, ?> map, final boolean b) {
-                }
-
-                @Override
-                public byte[] serialize(final String s, final TopFiveSongs topFiveSongs) {
-                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    final DataOutputStream
-                            dataOutputStream =
-                            new DataOutputStream(out);
-                    try {
-                        for (SongPlayCount songPlayCount : topFiveSongs) {
-                            dataOutputStream.writeLong(songPlayCount.getSongId());
-                            dataOutputStream.writeLong(songPlayCount.getPlays());
-                        }
-                        dataOutputStream.flush();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return out.toByteArray();
-                }
-
-                @Override
-                public void close() {
-
-                }
-            };
-        }
-
-        @Override
-        public Deserializer<TopFiveSongs> deserializer() {
-            return new Deserializer<TopFiveSongs>() {
-                @Override
-                public void configure(final Map<String, ?> map, final boolean b) {
-
-                }
-
-                @Override
-                public TopFiveSongs deserialize(final String s, final byte[] bytes) {
-                    if (bytes == null || bytes.length == 0) {
-                        return null;
-                    }
-                    final TopFiveSongs result = new TopFiveSongs();
-
-                    final DataInputStream
-                            dataInputStream =
-                            new DataInputStream(new ByteArrayInputStream(bytes));
-
-                    try {
-                        while (dataInputStream.available() > 0) {
-                            result.add(new SongPlayCount(dataInputStream.readLong(),
-                                    dataInputStream.readLong()));
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return result;
-                }
-
-                @Override
-                public void close() {
-
-                }
-            };
-        }
-    }
-
-    /**
-     * Used in aggregations to keep track of the Top five songs
-     */
-    public static class TopFiveSongs implements Iterable<SongPlayCount> {
-        private final Map<Long, SongPlayCount> currentSongs = new HashMap<>();
-        private final TreeSet<SongPlayCount> topFive = new TreeSet<>((o1, o2) -> {
-            final int result = o2.getPlays().compareTo(o1.getPlays());
-            if (result != 0) {
-                return result;
-            }
-            return o1.getSongId().compareTo(o2.getSongId());
-        });
-
-        public void add(final SongPlayCount songPlayCount) {
-            if (currentSongs.containsKey(songPlayCount.getSongId())) {
-                topFive.remove(currentSongs.remove(songPlayCount.getSongId()));
-            }
-            topFive.add(songPlayCount);
-            currentSongs.put(songPlayCount.getSongId(), songPlayCount);
-            if (topFive.size() > 5) {
-                final SongPlayCount last = topFive.last();
-                currentSongs.remove(last.getSongId());
-                topFive.remove(last);
-            }
-        }
-
-        void remove(final SongPlayCount value) {
-            topFive.remove(value);
-            currentSongs.remove(value.getSongId());
-        }
-
-
-        @Override
-        public Iterator<SongPlayCount> iterator() {
-            return topFive.iterator();
-        }
     }
 
 

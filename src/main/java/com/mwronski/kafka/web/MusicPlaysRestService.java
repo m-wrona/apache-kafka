@@ -3,6 +3,7 @@ package com.mwronski.kafka.web;
 import com.mwronski.kafka.Application;
 import com.mwronski.kafka.model.SongBean;
 import com.mwronski.kafka.model.SongPlayCountBean;
+import com.mwronski.kafka.streams.TopFiveSongs;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -39,7 +40,7 @@ import com.mwronski.kafka.MetadataService;
  * locate and query the State Stores within a Kafka Streams Application.
  */
 @Path("kafka-music")
-public class MusicPlaysRestService {
+public final class MusicPlaysRestService {
 
     private final KafkaStreams streams;
     private final MetadataService metadataService;
@@ -109,10 +110,10 @@ public class MusicPlaysRestService {
     private List<SongPlayCountBean> topFiveSongs(final String key,
                                                  final String storeName) {
 
-        final ReadOnlyKeyValueStore<String, Application.TopFiveSongs> topFiveStore =
-                streams.store(storeName, QueryableStoreTypes.<String, Application.TopFiveSongs>keyValueStore());
+        final ReadOnlyKeyValueStore<String, TopFiveSongs> topFiveStore =
+                streams.store(storeName, QueryableStoreTypes.<String, TopFiveSongs>keyValueStore());
         // Get the value from the store
-        final Application.TopFiveSongs value = topFiveStore.get(key);
+        final TopFiveSongs value = topFiveStore.get(key);
         if (value == null) {
             throw new NotFoundException(String.format("Unable to find value in %s for key %s", storeName, key));
         }

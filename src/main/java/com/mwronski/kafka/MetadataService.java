@@ -14,7 +14,7 @@ import javax.ws.rs.NotFoundException;
  * Looks up StreamsMetadata from KafkaStreams and converts the results
  * into Beans that can be JSON serialized via Jersey.
  */
-public class MetadataService {
+public final class MetadataService {
 
     private final KafkaStreams streams;
 

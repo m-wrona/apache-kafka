@@ -10,7 +10,7 @@ import java.util.Set;
  * We use this JavaBean based approach as it fits nicely with JSON serialization provided by
  * jax-rs/jersey
  */
-public class HostStoreInfo {
+public final class HostStoreInfo {
 
     private String host;
     private int port;
