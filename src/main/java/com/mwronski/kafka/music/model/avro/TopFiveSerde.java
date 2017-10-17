@@ -1,6 +1,6 @@
-package com.mwronski.kafka.music;
+package com.mwronski.kafka.music.model.avro;
 
-import com.mwronski.kafka.music.model.avro.SongPlayCount;
+import com.mwronski.kafka.music.model.TopFiveSongs;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -11,11 +11,11 @@ import java.util.Map;
 /**
  * Serde for TopFiveSongs
  */
-public class TopFiveSerde implements Serde<TopFiveSongs> {
+public final class TopFiveSerde implements Serde<TopFiveSongs> {
 
     @Override
     public void configure(final Map<String, ?> map, final boolean b) {
-
+        //empty
     }
 
     @Override

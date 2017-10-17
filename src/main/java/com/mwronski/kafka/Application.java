@@ -1,8 +1,9 @@
 package com.mwronski.kafka;
 
+import com.mwronski.kafka.config.KafkaConfigRestService;
 import com.mwronski.kafka.music.MusicPlaysRestService;
-import com.mwronski.kafka.music.TopFiveSerde;
-import com.mwronski.kafka.music.TopFiveSongs;
+import com.mwronski.kafka.music.model.avro.TopFiveSerde;
+import com.mwronski.kafka.music.model.TopFiveSongs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -95,11 +96,12 @@ public final class Application {
 
     static WebService startRestProxy(final KafkaStreams streams, final HostInfo hostInfo)
             throws Exception {
-        final WebService interactiveQueriesRestService = new WebService(streams, hostInfo);
-        interactiveQueriesRestService.start(
+        final WebService webService = new WebService(hostInfo);
+        webService.start(
+                new KafkaConfigRestService(streams),
                 new MusicPlaysRestService(streams, hostInfo)
         );
-        return interactiveQueriesRestService;
+        return webService;
     }
 
     static KafkaStreams createChartsStreams(final String bootstrapServers,

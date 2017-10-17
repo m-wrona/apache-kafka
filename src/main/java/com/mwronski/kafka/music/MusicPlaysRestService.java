@@ -3,7 +3,7 @@ package com.mwronski.kafka.music;
 import com.mwronski.kafka.Application;
 import com.mwronski.kafka.music.model.SongBean;
 import com.mwronski.kafka.music.model.SongPlayCountBean;
-import com.mwronski.kafka.music.TopFiveSongs;
+import com.mwronski.kafka.music.model.TopFiveSongs;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -26,15 +26,15 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
 import com.mwronski.kafka.music.model.avro.Song;
-import com.mwronski.kafka.HostStoreInfo;
-import com.mwronski.kafka.MetadataService;
+import com.mwronski.kafka.config.HostStoreInfo;
+import com.mwronski.kafka.config.MetadataService;
 
 /**
  * A simple REST proxy that runs embedded in the {@link Application}. This is used to
  * demonstrate how a developer can use the Interactive Queries APIs exposed by Kafka Streams to
  * locate and query the State Stores within a Kafka Streams Application.
  */
-@Path("kafka-music")
+@Path("music")
 public final class MusicPlaysRestService {
 
     private final KafkaStreams streams;

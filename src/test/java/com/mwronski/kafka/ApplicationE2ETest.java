@@ -216,7 +216,7 @@ public class ApplicationE2ETest {
                 MAX_WAIT_MS,
                 "StreamsMetadata should be available");
 
-        final String baseUrl = "http://localhost:" + appServerPort + "/kafka-music";
+        final String baseUrl = "http://localhost:" + appServerPort + "/music";
         final Client client = ClientBuilder.newClient();
 
         // Wait until the all-songs state store has some data in it

@@ -1,4 +1,4 @@
-package com.mwronski.kafka;
+package com.mwronski.kafka.config;
 
 import java.util.Objects;
 import java.util.Set;

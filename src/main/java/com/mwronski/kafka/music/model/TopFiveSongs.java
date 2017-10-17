@@ -1,4 +1,4 @@
-package com.mwronski.kafka.music;
+package com.mwronski.kafka.music.model;
 
 import com.mwronski.kafka.music.model.avro.SongPlayCount;
 
@@ -10,7 +10,7 @@ import java.util.TreeSet;
 /**
  * Used in aggregations to keep track of the Top five songs
  */
-public class TopFiveSongs implements Iterable<SongPlayCount> {
+public final class TopFiveSongs implements Iterable<SongPlayCount> {
 
     private final Map<Long, SongPlayCount> currentSongs = new HashMap<>();
 

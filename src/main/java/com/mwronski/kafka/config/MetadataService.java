@@ -1,4 +1,4 @@
-package com.mwronski.kafka;
+package com.mwronski.kafka.config;
 
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
