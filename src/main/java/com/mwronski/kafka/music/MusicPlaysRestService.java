@@ -4,6 +4,7 @@ import com.mwronski.kafka.Application;
 import com.mwronski.kafka.music.model.SongBean;
 import com.mwronski.kafka.music.model.SongPlayCountBean;
 import com.mwronski.kafka.music.model.TopFiveSongs;
+import io.confluent.examples.streams.avro.Song;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -25,7 +26,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import com.mwronski.kafka.music.model.avro.Song;
 import com.mwronski.kafka.config.HostStoreInfo;
 import com.mwronski.kafka.config.MetadataService;
 

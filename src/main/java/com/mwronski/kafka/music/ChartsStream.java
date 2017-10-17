@@ -1,10 +1,10 @@
 package com.mwronski.kafka.music;
 
 import com.mwronski.kafka.music.model.TopFiveSongs;
-import com.mwronski.kafka.music.model.avro.PlayEvent;
-import com.mwronski.kafka.music.model.avro.Song;
-import com.mwronski.kafka.music.model.avro.SongPlayCount;
 import com.mwronski.kafka.music.model.avro.TopFiveSerde;
+import io.confluent.examples.streams.avro.PlayEvent;
+import io.confluent.examples.streams.avro.Song;
+import io.confluent.examples.streams.avro.SongPlayCount;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

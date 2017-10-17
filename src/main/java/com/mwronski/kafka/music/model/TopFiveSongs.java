@@ -1,6 +1,6 @@
 package com.mwronski.kafka.music.model;
 
-import com.mwronski.kafka.music.model.avro.SongPlayCount;
+import io.confluent.examples.streams.avro.SongPlayCount;
 
 import java.util.HashMap;
 import java.util.Iterator;

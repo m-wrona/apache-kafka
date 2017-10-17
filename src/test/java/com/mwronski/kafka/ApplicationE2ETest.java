@@ -2,6 +2,8 @@ package com.mwronski.kafka;
 
 import com.mwronski.kafka.music.ChartsStream;
 import com.mwronski.kafka.music.model.SongPlayCountBean;
+import io.confluent.examples.streams.avro.PlayEvent;
+import io.confluent.examples.streams.avro.Song;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -36,8 +38,6 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import com.mwronski.kafka.music.model.avro.PlayEvent;
-import com.mwronski.kafka.music.model.avro.Song;
 import com.mwronski.kafka.embedded.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;

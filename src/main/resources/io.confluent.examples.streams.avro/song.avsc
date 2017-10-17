@@ -1,4 +1,4 @@
-{"namespace": "com.mwronski.kafka.music.model.avro",
+{"namespace": "io.confluent.examples.streams.avro",
  "type": "record",
  "name": "Song",
  "fields": [

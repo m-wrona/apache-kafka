@@ -1,5 +1,5 @@
 [
-    {"namespace": "com.mwronski.kafka.music.model.avro",
+    {"namespace": "io.confluent.examples.streams.avro",
      "type": "record",
      "name": "Order",
      "fields": [
@@ -9,7 +9,7 @@
      ]
     },
 
-    {"namespace": "com.mwronski.kafka.music.model.avro",
+    {"namespace": "io.confluent.examples.streams.avro",
      "type": "record",
      "name": "Customer",
      "fields": [
@@ -19,7 +19,7 @@
      ]
     },
 
-    {"namespace": "com.mwronski.kafka.music.model.avro",
+    {"namespace": "io.confluent.examples.streams.avro",
      "type": "record",
      "name": "Product",
      "fields": [
@@ -29,13 +29,13 @@
      ]
     },
 
-    {"namespace": "com.mwronski.kafka.music.model.avro",
+    {"namespace": "io.confluent.examples.streams.avro",
      "type": "record",
      "name": "EnrichedOrder",
      "fields": [
-         {"name": "product",  "type": "com.mwronski.kafka.music.model.avro.Product"},
-         {"name": "customer", "type": "com.mwronski.kafka.music.model.avro.Customer"},
-         {"name": "order", "type": "com.mwronski.kafka.music.model.avro.Order"}
+         {"name": "product",  "type": "io.confluent.examples.streams.avro.Product"},
+         {"name": "customer", "type": "io.confluent.examples.streams.avro.Customer"},
+         {"name": "order", "type": "io.confluent.examples.streams.avro.Order"}
      ]
     }
 ]
