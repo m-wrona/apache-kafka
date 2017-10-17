@@ -9,8 +9,8 @@ import org.apache.kafka.streams.state.HostInfo;
 public final class Application {
 
     private static final String DEFAULT_REST_ENDPOINT_HOSTNAME = "localhost";
-    private static final String DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092";
-    private static final String DEFAULT_SCHEMA_REGISTRY_URL = "http://localhost:8081";
+    static final String DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092";
+    static final String DEFAULT_SCHEMA_REGISTRY_URL = "http://localhost:8081";
 
     public static void main(String[] args) throws Exception {
         if (args.length > 4) {
