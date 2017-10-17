@@ -41,3 +41,21 @@ and then:
 ```
 ./run_web.sh
 ```
+
+## Kafka
+
+You can run Kafka and related stuff for demo purposes using following command:
+
+```
+docker-compose up
+```
+
+Other commands:
+
+```
+kafka-avro-console-consumer --topic song-feed --bootstrap-server localhost:9092 --from-beginning
+```
+
+```
+kafka-topics --list --zookeeper localhost:32181
+```
