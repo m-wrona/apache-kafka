@@ -177,9 +177,9 @@ public class ApplicationE2ETest {
         };
 
         // Verify that the charts are as expected
-//        verifyChart(baseUrl + "/charts/genre/punk",
-//                client,
-//                IntStream.range(0, 5).mapToObj(intFunction).collect(Collectors.toList()));
+        verifyChart(baseUrl + "/charts/genre/punk",
+                client,
+                IntStream.range(0, 5).mapToObj(intFunction).collect(Collectors.toList()));
 
         verifyChart(baseUrl + "/charts/genre/hip hop",
                 client,
