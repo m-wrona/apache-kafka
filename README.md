@@ -32,11 +32,13 @@ mvn package
 
 2) Run locally
 
+First start Kafka and data generator by executing:
+
 ```
 docker-compose up
 ```
 
-and then:
+and then start your web server:
 
 ```
 ./run_web.sh
