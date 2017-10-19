@@ -89,7 +89,7 @@ CREATE TABLE play_events \
 2) Query `KSQL` tables
 
 ```sql
-select * from play_events limit 10;
+SELECT song_id, COUNT(*) FROM play_events WINDOW TUMBLING (SIZE 5 SECONDS) GROUP BY song_id;
 ```
 
 ## Performance tests
