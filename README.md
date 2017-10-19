@@ -62,6 +62,18 @@ kafka-avro-console-consumer --topic song-feed --bootstrap-server localhost:9092 
 kafka-topics --list --zookeeper localhost:32181
 ```
 
+#### KSQL
+
+KSQL will be started automatically after running `docker-compose`.
+
+1) Access KSQL server
+
+```
+docker-compose exec ksql-cli ksql-cli local --bootstrap-server kafka:29092
+```
+
+
+
 ## Performance tests
 
 Pre-requisites:
