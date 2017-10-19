@@ -76,52 +76,20 @@ docker-compose exec ksql-cli ksql-cli local --bootstrap-server kafka:29092
 
 Sample like 'top five' can also be delivered using KSQL. In order to do that do the following:
 
-1) Create `Kafka` topic 
-
-```bash
-kafka-topics --create --topic ksql-charts-top-five-songs --if-not-exists --zookeeper localhost:32181 --partitions 4 --replication-factor 1
-```
-
-2) Prepare sample data in created topic 
-
-```
-kafka-avro-console-producer \
-         --broker-list localhost:9092 \
-         --topic ksql-charts-top-five-songs \
-         --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"song_id","type":"long"},{"name":"plays","type":"long"}]}'
-```
-
-and put some sample data:
-
-```
-{"song_id":1,"plays":3}
-{"song_id":2,"plays":5}
-{"song_id":1,"plays":10}
-
-```
-
-You can check your data using consumer:
-
-```
-kafka-avro-console-consumer --topic ksql-charts-top-five-songs \
-         --bootstrap-server localhost:9092 \
-         --from-beginning 
-```
-
-3) Create `KSQL` table
+1) Create `KSQL` table
 
 ```sql
-CREATE TABLE top_five_songs \
-  (song_id BIGINT, \
-    plays BIGINT) \
-  WITH (KAFKA_TOPIC = 'ksql-charts-top-five-songs', \
+CREATE TABLE play_events \
+  (song_id LONG, \
+    duration LONG) \
+  WITH (KAFKA_TOPIC = 'play-events', \
     value_format ='JSON'); 
 ```
 
-4) Query `KSQL` tables
+2) Query `KSQL` tables
 
 ```sql
-select * from top_five_songs;
+select * from play_events limit 10;
 ```
 
 ## Performance tests
