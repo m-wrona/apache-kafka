@@ -79,17 +79,21 @@ Sample like 'top five' can also be delivered using KSQL. In order to do that do 
 1) Create `KSQL` table
 
 ```sql
-CREATE TABLE play_events \
+CREATE STREAM s_play_events \
   (song_id LONG, \
     duration LONG) \
   WITH (KAFKA_TOPIC = 'play-events', \
     value_format ='JSON'); 
 ```
 
+```sql
+CREATE TABLE play_events_sum as SELECT song_id, COUNT(*) FROM s_play_events WINDOW TUMBLING (SIZE 30 SECONDS) GROUP BY song_id; 
+```
+
 2) Query `KSQL` tables
 
 ```sql
-SELECT song_id, COUNT(*) FROM play_events WINDOW TUMBLING (SIZE 5 SECONDS) GROUP BY song_id;
+SELECT * from play_events_sum WINDOW TUMBLING (SIZE 10 SECONDS);
 ```
 
 ## Performance tests
